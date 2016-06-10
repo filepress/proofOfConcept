@@ -29,7 +29,8 @@ function parseHeader(obj) {
 }
 
 function parseYMLHeader(header) {
-	
+	return header.split()
+	.filter(line => !/^---/.test(line))
 }
 
 function addMarkdownHeader(obj) {
