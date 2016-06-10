@@ -27,14 +27,9 @@ function parseHeader(obj) {
 }
 
 function parseYMLHeader(header) {
-	let lines = header.split('\n')
-	lines.splice(0,1)
-	return lines.reduce((settings, line) => {
-		let split = line.split(':')
-		return Object.assign(settings, {
-			[split[0].trim()]: split[1].trim()
-		})
-	}, {})
+	const YAML = require('yamljs');
+	let headerYML = header.replace(/^.*\n/, '')
+	return YAML.parse(headerYML)
 }
 
 function addMarkdownHeader(obj) {
