@@ -1,6 +1,6 @@
 ---
-title: 'Eintrag eins'
-layour: 'post'
+title: Eintrag eins
+layour: post
 ---
 
 An entry. Which is a nice thing to have.

@@ -10,68 +10,65 @@ const _ = require('highland')
 //Get all the md files.
 let sourceFolder = path.join(__dirname, 'source')
 walk(sourceFolder, /\.md$/, function(err, files) {
-//    parseMarkdownFile(files[0])
-	const rs = new Stream.Readable
-    files.forEach(file => {
-		rs.push(file)
-        //parseMarkdownFile(file)
-    })
-	rs.push(null)
-	rs.pipe(markdownStream)
+	console.log('files\n', files);
+
+	_(files)
+	.map(filePath => ({filePath}))
+	.flatMap(addMarkdownHeader)
+	.map(parseHeader)
+	.collect()
+	.toCallback((err, result) => {
+		console.log('result\n', result);
+	})
+
 })
 
-
-
-function parseMarkdownFile(filePath) {
-
-    var headerStream = new Stream.Duplex({ decodeStrings: false })
-    headerStream._write = function(chunk, enc, next) {
-		let fileInfos = chunk.split('\n')
-		.reduce((infos, line) => {
-			if(infos.markers >= 2) return infos
-			if(/^---/.test(line)) {
-				infos.markers += 1
-			} else {
-				infos.header.push(line)
-			}
-			return infos
-		}, {markers: 0, header: []})
-		fileInfos = fileInfos.header.join('\n')
-		console.log(fileInfos);
-        next()
-    };
-    const fileStream = fs.createReadStream(filePath, 'utf8')
-    fileStream.pipe(headerStream)
+function parseHeader(obj) {
+	obj.header = parseYMLHeader(obj.header)
+	return obj
 }
 
-/*
-function parseMarkdownFile(filePath) {
-	const stream = fs.createReadStream(filePath, 'utf8')
-	let header = []
-	let markers = 0
-	let readOnce = false
-	stream.on('readable', function(){
-		if(readOnce) return
-		readOnce = true
-		console.log('now readable');
-		while(markers < 2) {
-			let read = stream.read(50)
-			if(read) {
-				let lines = read.split('\n')
-				lines.forEach(line => {
-					if(/^---/.test(line)) (
-						markers += 1
-					)
-					if(markers < 2) {
-						header.push(line.replace('\r', ''))
-					}
-				})
-			}
-		}
+function parseYMLHeader(header) {
+	
+}
 
+function addMarkdownHeader(obj) {
+	return _(function (push, next) {
+		readMarkdown(obj.filePath)
+		.map(onlyHeader)
+		.toCallback((err, result) => {
+			obj.header = result
+			push(err, obj)
+			push(null, _.nil)
+		})
 	})
 }
-*/
+
+function readMarkdown(filePath) {
+    // create a new Stream
+    return _(function (push, next) {
+        // do something async when we read from the Stream
+        fs.readFile(filePath, 'utf8', function (err, data) {
+            push(err, data)
+            push(null, _.nil)
+        });
+    });
+};
+
+function onlyHeader(file) {
+	return file.split('\n')
+	.reduce((infos, line) => {
+		if(infos.markers >= 2) return infos
+		if(/^---/.test(line)) {
+			infos.markers += 1
+		} else {
+			infos.header.push(line)
+		}
+		return infos
+	}, {markers: 0, header: []})
+	.header.join('\n')
+}
+
 function walk(dir, filter, done) {
     var results = []
     fs.readdir(dir, function(err, list) {

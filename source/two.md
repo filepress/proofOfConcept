@@ -1,6 +1,6 @@
 ---
-title: 'Second entry'
-layout: 'post'
+title: Second entry
+layout: post
 ---
 
 And even more.
