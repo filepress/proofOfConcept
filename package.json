@@ -1,0 +1,24 @@
+{
+  "name": "poc",
+  "version": "1.0.0",
+  "description": "Proof of Concept for MLogJS basic idea.",
+  "main": "generate.js",
+  "dependencies": {
+    "highland": "^2.8.1",
+    "yamljs": "^0.2.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MLogJS/proofOfConcept.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MLogJS/proofOfConcept/issues"
+  },
+  "homepage": "https://github.com/MLogJS/proofOfConcept#readme"
+}
