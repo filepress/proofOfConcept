@@ -10,15 +10,13 @@ const _ = require('highland')
 //Get all the md files.
 let sourceFolder = path.join(__dirname, 'source')
 walk(sourceFolder, /\.md$/, function(err, files) {
-	console.log('files\n', files);
-
 	_(files)
 	.map(filePath => ({filePath}))
 	.flatMap(addMarkdownHeader)
 	.map(parseHeader)
 	.collect()
 	.toCallback((err, result) => {
-		console.log('result\n', result);
+		console.log('result\n', JSON.stringify(result, null, 2));
 	})
 
 })
@@ -29,8 +27,14 @@ function parseHeader(obj) {
 }
 
 function parseYMLHeader(header) {
-	return header.split()
-	.filter(line => !/^---/.test(line))
+	let lines = header.split('\n')
+	lines.splice(0,1)
+	return lines.reduce((settings, line) => {
+		let split = line.split(':')
+		return Object.assign(settings, {
+			[split[0].trim()]: split[1].trim()
+		})
+	}, {})
 }
 
 function addMarkdownHeader(obj) {
@@ -62,6 +66,7 @@ function onlyHeader(file) {
 		if(infos.markers >= 2) return infos
 		if(/^---/.test(line)) {
 			infos.markers += 1
+			if(infos.markers === 1) infos.header.push(line)
 		} else {
 			infos.header.push(line)
 		}
