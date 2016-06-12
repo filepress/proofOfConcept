@@ -9,7 +9,8 @@ An entry. Which is a nice thing to have.
 //Some javascript
 const name = 'mine'
 function other() {
-
+	let x = 1
+	return x
 }
 ```
 
@@ -19,3 +20,5 @@ function other() {
 And Some
     Formatted text in general
 ```
+
+> an important Quote

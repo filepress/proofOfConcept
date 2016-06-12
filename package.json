@@ -5,6 +5,7 @@
   "main": "generate.js",
   "dependencies": {
     "highland": "^2.8.1",
+    "markdown-it": "^6.0.5",
     "yamljs": "^0.2.7"
   },
   "devDependencies": {},

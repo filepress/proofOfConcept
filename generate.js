@@ -14,7 +14,12 @@ const path = require('path')
 const fs = require('fs')
 const Stream = require('stream')
 const _ = require('highland')
-const YAML = require('yamljs');
+const YAML = require('yamljs')
+const md = require('markdown-it')({
+  html: true,
+  linkify: true,
+  typographer: true
+})
 
 //Get all the md files.
 let sourceFolder = path.join(__dirname, 'source')
@@ -22,11 +27,20 @@ generateMardownStream(sourceFolder)
 .map(filePath => ({filePath}))
 .flatMap(addMarkdown)
 .map(parseFrontmatter)
-.each((element) => {
-	process.stdout.write('\n')
-	process.stdout.write(YAML.stringify(element, 3))
-})
+.map(toHTML)
+.each(saveToHTML)
 
+function saveToHTML(obj) {
+	fs.writeFile(`public/${obj.config.title.replace(/\s/g,'-')}.html`, obj.html, () => {
+
+	})
+}
+
+function toHTML(obj) {
+	const markdown = `# ${obj.config.title}\n\n${obj.body}`
+	obj.html = md.render(markdown)
+	return obj
+}
 
 function logTime() {
 	const end = Date.now()
