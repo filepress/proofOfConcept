@@ -20,7 +20,7 @@ const YAML = require('yamljs');
 let sourceFolder = path.join(__dirname, 'source')
 generateMardownStream(sourceFolder)
 .map(filePath => ({filePath}))
-.flatMap(addConfig)
+.flatMap(addMarkdown)
 .map(parseFrontmatter)
 .each((element) => {
 	process.stdout.write('\n')
@@ -53,10 +53,10 @@ function parseYMLFrontmatter(header) {
 }
 
 /**
- *   [addMarkdownHeader description]
+ *   Adds config and body of the markdwon file to mdInfos object.
  *   @param {mdInfos} obj - The Infos to work on
  */
-function addConfig(obj) {
+function addMarkdown(obj) {
 	return _(function (push, next) {
 		readMarkdown(obj.filePath)
 		.map(markdown => ({
@@ -73,7 +73,7 @@ function addConfig(obj) {
 }
 
 /**
- *   [readMarkdown description]
+ *   Reads a given markdwon file and emits it's content in an event.
  *   @param  {String} filePath - Path to markdwon file to read
  *   @return {Stream}          - A stream with the read file
  */
@@ -108,6 +108,12 @@ function onlyFrontmatter(file) {
 	.header.join('\n')
 }
 
+/**
+ *   Removes the frontmatter from a markdown file.
+ *   Frontmatter assumed to be marked with [--- somthing ---].
+ *   @param  {String} file - Markdown file to work on
+ *   @return {String}      - The body of the given Markdown file
+ */
 function removeFrontmatter(file) {
 
 	//Replace the frontmatter. [\s\S] matches any character including whitespaces.
@@ -115,6 +121,12 @@ function removeFrontmatter(file) {
 	return file
 }
 
+/**
+ *   Creates a stream of markdown files in a directory.
+ *   Looks into subdirectories recursively.
+ *   @param  {String} dir - Directory to start from
+ *   @return {Stream}     - A highland stream with the found files
+ */
 function generateMardownStream(dir) {
 	return _(function (push, next) {
 		walk(dir, /\.md$/, push, () => {push(null, _.nil)})
@@ -122,8 +134,8 @@ function generateMardownStream(dir) {
 }
 
 /**
- *   Walks a filestructure starting from a given root and calls a callback
- *   with all found files.
+ *   Walks a filestructure starting from a given root and pushes all found
+ *   files onto a given stream. Compares all files against a filter.
  *   @param  {String}   dir    - Root directory
  *   @param  {RegEx}    filter - RegEx to test found files against
  *   @param  {Function} push   - Push function for a highland stream
