@@ -40,7 +40,7 @@ generateMardownStream(sourceFolder)
     }))
     .flatMap(addMarkdown)
     .map(parseFrontmatter)
-    .map(toHTML)
+    .map(generateHTML)
     .each(saveToHTML)
 
 /**
@@ -58,7 +58,7 @@ function saveToHTML(obj) {
  *   @param  {mdInfos} obj - The infos to work with
  *   @return {mdInfos}     - With added .html field
  */
-function toHTML(obj) {
+function generateHTML(obj) {
     const markdown = `# ${obj.config.title}\n\n${obj.body}`
     obj.html = md.render(markdown)
     return obj
