@@ -15,37 +15,51 @@ const fs = require('fs')
 const Stream = require('stream')
 const _ = require('highland')
 const YAML = require('yamljs')
+const hljs = require('highlight.js')
 const md = require('markdown-it')({
-  html: true,
-  linkify: true,
-  typographer: true
+    html: true,
+    linkify: true,
+    typographer: true,
+    highlight: function(str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+            try {
+                return '<pre class="hljs"><code>' +
+                    hljs.highlight(lang, str, true).value +
+                    '</code></pre>';
+            } catch (__) {}
+        }
+
+        return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+    }
 })
 
 //Get all the md files.
 let sourceFolder = path.join(__dirname, 'source')
 generateMardownStream(sourceFolder)
-.map(filePath => ({filePath}))
-.flatMap(addMarkdown)
-.map(parseFrontmatter)
-.map(toHTML)
-.each(saveToHTML)
+    .map(filePath => ({
+        filePath
+    }))
+    .flatMap(addMarkdown)
+    .map(parseFrontmatter)
+    .map(toHTML)
+    .each(saveToHTML)
 
 function saveToHTML(obj) {
-	fs.writeFile(`public/${obj.config.title.replace(/\s/g,'-')}.html`, obj.html, () => {
+    fs.writeFile(`public/${obj.config.title.replace(/\s/g,'-')}.html`, obj.html, () => {
 
-	})
+    })
 }
 
 function toHTML(obj) {
-	const markdown = `# ${obj.config.title}\n\n${obj.body}`
-	obj.html = md.render(markdown)
-	return obj
+    const markdown = `# ${obj.config.title}\n\n${obj.body}`
+    obj.html = md.render(markdown)
+    return obj
 }
 
 function logTime() {
-	const end = Date.now()
-	let dur = (end - start) / 1000
-	console.log('Ran for:', dur);
+    const end = Date.now()
+    let dur = (end - start) / 1000
+    console.log('Ran for:', dur);
 }
 
 /**
@@ -53,8 +67,8 @@ function logTime() {
  *   @param  {mdInfos} obj - mdInfos object to work on
  */
 function parseFrontmatter(obj) {
-	obj.config = parseYMLFrontmatter(obj.config)
-	return obj
+    obj.config = parseYMLFrontmatter(obj.config)
+    return obj
 }
 
 /**
@@ -62,8 +76,8 @@ function parseFrontmatter(obj) {
  *   @param  {String} header - The Frontmatter to parse
  */
 function parseYMLFrontmatter(header) {
-	let headerYML = header.replace(/^.*\n/, '')
-	return YAML.parse(headerYML)
+    let headerYML = header.replace(/^.*\n/, '')
+    return YAML.parse(headerYML)
 }
 
 /**
@@ -71,19 +85,19 @@ function parseYMLFrontmatter(header) {
  *   @param {mdInfos} obj - The Infos to work on
  */
 function addMarkdown(obj) {
-	return _(function (push, next) {
-		readMarkdown(obj.filePath)
-		.map(markdown => ({
-			config: onlyFrontmatter(markdown),
-			body: removeFrontmatter(markdown)
-		}))
-		.toCallback((err, result) => {
-			obj.config = result.config
-			obj.body = result.body
-			push(err, obj)
-			push(null, _.nil)
-		})
-	})
+    return _(function(push, next) {
+        readMarkdown(obj.filePath)
+            .map(markdown => ({
+                config: onlyFrontmatter(markdown),
+                body: removeFrontmatter(markdown)
+            }))
+            .toCallback((err, result) => {
+                obj.config = result.config
+                obj.body = result.body
+                push(err, obj)
+                push(null, _.nil)
+            })
+    })
 }
 
 /**
@@ -92,8 +106,8 @@ function addMarkdown(obj) {
  *   @return {Stream}          - A stream with the read file
  */
 function readMarkdown(filePath) {
-    return _(function (push, next) {
-        fs.readFile(filePath, 'utf8', function (err, data) {
+    return _(function(push, next) {
+        fs.readFile(filePath, 'utf8', function(err, data) {
             push(err, data)
             push(null, _.nil)
         });
@@ -108,18 +122,21 @@ function readMarkdown(filePath) {
  *   @return {String}      - The frontmatter of the given file
  */
 function onlyFrontmatter(file) {
-	return file.split('\n')
-	.reduce((infos, line) => {
-		if(infos.markers >= 2) return infos
-		if(/^---/.test(line)) {
-			infos.markers += 1
-			if(infos.markers === 1) infos.header.push(line)
-		} else {
-			infos.header.push(line)
-		}
-		return infos
-	}, {markers: 0, header: []})
-	.header.join('\n')
+    return file.split('\n')
+        .reduce((infos, line) => {
+            if (infos.markers >= 2) return infos
+            if (/^---/.test(line)) {
+                infos.markers += 1
+                if (infos.markers === 1) infos.header.push(line)
+            } else {
+                infos.header.push(line)
+            }
+            return infos
+        }, {
+            markers: 0,
+            header: []
+        })
+        .header.join('\n')
 }
 
 /**
@@ -130,9 +147,9 @@ function onlyFrontmatter(file) {
  */
 function removeFrontmatter(file) {
 
-	//Replace the frontmatter. [\s\S] matches any character including whitespaces.
-	file = file.replace(/---[\s\S]*---/, '')
-	return file
+    //Replace the frontmatter. [\s\S] matches any character including whitespaces.
+    file = file.replace(/---[\s\S]*---/, '')
+    return file
 }
 
 /**
@@ -142,8 +159,10 @@ function removeFrontmatter(file) {
  *   @return {Stream}     - A highland stream with the found files
  */
 function generateMardownStream(dir) {
-	return _(function (push, next) {
-		walk(dir, /\.md$/, push, () => {push(null, _.nil)})
+    return _(function(push, next) {
+        walk(dir, /\.md$/, push, () => {
+            push(null, _.nil)
+        })
     });
 }
 
