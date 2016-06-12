@@ -17,17 +17,14 @@ const YAML = require('yamljs');
 
 //Get all the md files.
 let sourceFolder = path.join(__dirname, 'source')
-walk(sourceFolder, /\.md$/, function(err, files) {
-	_(files)
-	.map(filePath => ({filePath}))
-	.flatMap(addConfig)
-	.map(parseFrontmatter)
-	.collect()
-	.toCallback((err, result) => {
-		console.log('result\n', YAML.stringify(result, 3));
-		logTime()
-	})
-
+generateMardownStream(sourceFolder)
+.map(filePath => ({filePath}))
+.flatMap(addConfig)
+.map(parseFrontmatter)
+.collect()
+.toCallback((err, result) => {
+	console.log('result\n', YAML.stringify(result, 3));
+	logTime()
 })
 
 function logTime() {
@@ -106,15 +103,21 @@ function onlyFrontmatter(file) {
 	.header.join('\n')
 }
 
+function generateMardownStream(dir) {
+	return _(function (push, next) {
+		walk(dir, /\.md$/, push, () => {push(null, _.nil)})
+    });
+}
+
 /**
  *   Walks a filestructure starting from a given root and calls a callback
  *   with all found files.
  *   @param  {String}   dir    - Root directory
- *   @param  {RegEx}   filter  - RegEx to test found files against
+ *   @param  {RegEx}    filter - RegEx to test found files against
+ *   @param  {Function} push   - Push function for a highland stream
  *   @param  {Function} done   - Callback will be called with (err, foundFiles)
  */
-function walk(dir, filter, done) {
-    var results = []
+function walk(dir, filter, push, done) {
     fs.readdir(dir, function(err, list) {
         if (err) return done(err)
         var pending = list.length
@@ -123,15 +126,15 @@ function walk(dir, filter, done) {
             file = path.resolve(dir, file)
             fs.stat(file, function(err, stat) {
                 if (stat && stat.isDirectory()) {
-                    walk(file, filter, function(err, res) {
+                    walk(file, filter, push, function(err, res) {
                         results = results.concat(res)
-                        if (!--pending) done(null, results)
+                        if (!--pending) done()
                     });
                 } else {
                     if (filter.test(file)) {
-                        results.push(file)
+                        push(null, file)
                     }
-                    if (!--pending) done(null, results)
+                    if (!--pending) done()
                 }
             })
         })
