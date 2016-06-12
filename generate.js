@@ -28,7 +28,6 @@ const md = require('markdown-it')({
                     '</code></pre>';
             } catch (__) {}
         }
-
         return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
     }
 })
@@ -44,12 +43,21 @@ generateMardownStream(sourceFolder)
     .map(toHTML)
     .each(saveToHTML)
 
+/**
+ *   Saved an mdInfos html to a file.
+ *   @param  {mdInfos} obj - File that the html should be changed for
+ */
 function saveToHTML(obj) {
     fs.writeFile(`public/${obj.config.title.replace(/\s/g,'-')}.html`, obj.html, () => {
 
     })
 }
 
+/**
+ *   Converts markdown to HTML.
+ *   @param  {mdInfos} obj - The infos to work with
+ *   @return {mdInfos}     - With added .html field
+ */
 function toHTML(obj) {
     const markdown = `# ${obj.config.title}\n\n${obj.body}`
     obj.html = md.render(markdown)
