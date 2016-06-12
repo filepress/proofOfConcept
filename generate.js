@@ -8,6 +8,7 @@
  */
 
 const start = Date.now()
+process.on('exit', logTime)
 
 const path = require('path')
 const fs = require('fs')
@@ -21,16 +22,16 @@ generateMardownStream(sourceFolder)
 .map(filePath => ({filePath}))
 .flatMap(addConfig)
 .map(parseFrontmatter)
-.collect()
-.toCallback((err, result) => {
-	console.log('result\n', YAML.stringify(result, 3));
-	logTime()
+.each((element) => {
+	process.stdout.write('\n')
+	process.stdout.write(YAML.stringify(element, 3))
 })
+
 
 function logTime() {
 	const end = Date.now()
 	let dur = (end - start) / 1000
-	console.log('Time needed: ', dur);
+	console.log('Ran for:', dur);
 }
 
 /**
@@ -58,9 +59,13 @@ function parseYMLFrontmatter(header) {
 function addConfig(obj) {
 	return _(function (push, next) {
 		readMarkdown(obj.filePath)
-		.map(onlyFrontmatter)
+		.map(markdown => ({
+			config: onlyFrontmatter(markdown),
+			body: removeFrontmatter(markdown)
+		}))
 		.toCallback((err, result) => {
-			obj.config = result
+			obj.config = result.config
+			obj.body = result.body
 			push(err, obj)
 			push(null, _.nil)
 		})
@@ -101,6 +106,13 @@ function onlyFrontmatter(file) {
 		return infos
 	}, {markers: 0, header: []})
 	.header.join('\n')
+}
+
+function removeFrontmatter(file) {
+
+	//Replace the frontmatter. [\s\S] matches any character including whitespaces.
+	file = file.replace(/---[\s\S]*---/, '')
+	return file
 }
 
 function generateMardownStream(dir) {
