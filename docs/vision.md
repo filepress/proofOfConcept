@@ -27,3 +27,7 @@ And I feel like there could be a better support for rendering engines. For examp
 
 Really random thoughts:
 - Make sure we can easily switch rendering engine
+
+# Name
+
+Children need a name, lets call this one '我报' (wǒ bào, eng.: I reported).
