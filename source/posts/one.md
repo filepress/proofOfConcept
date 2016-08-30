@@ -1,6 +1,12 @@
 ---
 title: Eintrag eins
 layour: post
+date: 2016-04-30 14:59:07
+categories:
+  - Ein Baum in China
+tags:
+  - Post
+  - Tage
 ---
 
 An entry. Which is a nice thing to have.
