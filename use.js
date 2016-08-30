@@ -1,7 +1,8 @@
 const filepress = require('./lib/filepress')
 
 filepress('./source')
-//	.use(logger)
+	.use(logger)
+	.run()
 
 
 function logger(item) {
