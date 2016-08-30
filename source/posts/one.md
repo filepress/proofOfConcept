@@ -1,6 +1,6 @@
 ---
 title: Eintrag eins
-layour: post
+layout: post
 date: 2016-04-30 14:59:07
 categories:
   - Ein Baum in China

@@ -8,10 +8,12 @@ function logger(item) {
 const YAML = require('yamljs')
 const frontmatter = () => (obj) => {
     const parsed = /^\s*---([\s\S]*)---[\r\n]*([\s\S]*)/.exec(obj.content)
-	const rawYML = parsed[1]
-	const body = parsed[2]
-	const config = YAML.parse(rawYML)
-    return Object.assign({}, obj, config, {body})
+    const rawYML = parsed[1]
+    const body = parsed[2]
+    const config = YAML.parse(rawYML)
+    return Object.assign({}, obj, config, {
+        body
+    })
 }
 
 const hljs = require('highlight.js')
@@ -31,22 +33,41 @@ const md = require('markdown-it')({
     }
 })
 const markdown = () => (obj) => {
-	const markdown = `# ${obj.title}\n\n${obj.body}`
+    const markdown = `# ${obj.title}\n\n${obj.body}`
     obj.content = md.render(markdown)
-	obj.extension = 'html'
+    obj.extension = 'html'
     return obj
+}
+
+const fs = require('fs-extra')
+const layouts = () => (page) => {
+    if (page.layout !== 'post') return page
+	console.log(page.title);
+    const content = `<article>
+			${page.content}
+		</article>`
+    page.content = `<html>
+		<head>
+			<title>Test</title>
+		</head>
+		<body>
+			${content}
+		</body>
+		</html>`
+
+    return page
 }
 
 filepress('./source')
     .use(frontmatter())
-	.use(markdown())
-    .use(logger)
+    .use(markdown())
+    .use(layouts())
     .write('./dist')
 
 
-	/*	.use(frontmatter('yml'))
-		.use(markdown)
-		.use(layouts('js'))
-		.build()
-		.write('./build')
-	*/
+/*	.use(frontmatter('yml'))
+	.use(markdown)
+	.use(layouts('js'))
+	.build()
+	.write('./build')
+*/
