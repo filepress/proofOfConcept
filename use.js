@@ -15,3 +15,9 @@ function logger(item) {
 	.build()
 	.write('./build')
 */
+
+function frontmatter() {
+	return function(file) {
+
+	}
+}
