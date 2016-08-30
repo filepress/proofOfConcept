@@ -40,20 +40,13 @@ const markdown = () => (obj) => {
 }
 
 const fs = require('fs-extra')
-const layouts = () => (page) => {
+const layouts = () => (page, site) => {
     if (page.layout !== 'post') return page
-	console.log(page.title);
-    const content = `<article>
-			${page.content}
-		</article>`
-    page.content = `<html>
-		<head>
-			<title>Test</title>
-		</head>
-		<body>
-			${content}
-		</body>
-		</html>`
+	console.log(page.title)
+	const template = fs.readFileSync('./layouts/post.html')
+    page.content = eval(`\`${template}\``)
+	const layout = fs.readFileSync('./layouts/layout.html')
+	page.content = eval(`\`${layout}\``)
 
     return page
 }
