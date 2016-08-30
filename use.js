@@ -33,9 +33,10 @@ const md = require('markdown-it')({
     }
 })
 const markdown = () => (obj) => {
+	if(!obj.extension === '.md') return obj
     const markdown = `# ${obj.title}\n\n${obj.body}`
     obj.content = md.render(markdown)
-    obj.extension = 'html'
+    obj.extension = '.html'
     return obj
 }
 
