@@ -65,13 +65,55 @@ const layouts = () => (page, site) => {
     return page
 }
 
+const buildIndex = () => (pages, site) => {
+	const content = html`<ul>
+		${pages.filter(page => page.layout === 'post').map(post => {
+			return html`<li>${post.title}</li>`
+		})}
+	</ul>`
+	pages.push({
+		title: site.title,
+		date: Date.now(),
+		layout: 'index',
+		content,
+		extension: '.html',
+		path: 'index'
+	})
+	return pages
+}
+
+//http://www.2ality.com/2015/01/template-strings-html.html
+function html(literalSections, ...substs) {
+    let raw = literalSections.raw
+    let result = ''
+    substs.forEach((subst, i) => {
+        let lit = raw[i]
+
+        if (Array.isArray(subst)) {
+            subst = subst.join('')
+        }
+
+        if (lit.endsWith('$')) {
+            subst = htmlEscape(subst)
+            lit = lit.slice(0, -1)
+        }
+        result += lit
+        result += subst
+    })
+    result += raw[raw.length - 1]
+    return result
+}
+
 filepress('./source')
     .use(frontmatter())
     .use(markdown())
     .use(layouts())
     .write('./dist')
 	.collect()
-	.use(logger)
+	.use(buildIndex())
+	.seperate()
+	.use(layouts())
+	.write('./dist')
 	.end()
 
 
