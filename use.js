@@ -1,7 +1,7 @@
 const filepress = require('./lib/filepress')
 
 function logger(item) {
-    console.log(item)
+    console.log('logging:', item)
     return item
 }
 
@@ -11,6 +11,12 @@ const frontmatter = () => (obj) => {
     const rawYML = parsed[1]
     const body = parsed[2]
     const config = YAML.parse(rawYML)
+	if(config.date) {
+		const date = new Date(config.date)
+		config.year = date.getFullYear()
+		config.month = date.getMonth() + 1
+		config.day = date.getDate()
+	}
     return Object.assign({}, obj, config, {
         body
     })
@@ -41,12 +47,19 @@ const markdown = () => (obj) => {
 }
 
 const fs = require('fs-extra')
+const layoutCache = new Map()
+layoutCache.set('layout', fs.readFileSync('./layouts/layout.html'))
 const layouts = () => (page, site) => {
-    if (page.layout !== 'post') return page
-	console.log(page.title)
-	const template = fs.readFileSync('./layouts/post.html')
+    if (!page.layout) return page
+	if(!layoutCache.has(page.layout)) {
+
+		//Load the layout
+		const template = fs.readFileSync(`./layouts/${page.layout}.html`)
+		layoutCache.set(page.layout, template)
+	}
+	const template = layoutCache.get(page.layout)
     page.content = eval(`\`${template}\``)
-	const layout = fs.readFileSync('./layouts/layout.html')
+	const layout = layoutCache.get('layout')
 	page.content = eval(`\`${layout}\``)
 
     return page
@@ -57,6 +70,9 @@ filepress('./source')
     .use(markdown())
     .use(layouts())
     .write('./dist')
+	.collect()
+	.use(logger)
+	.end()
 
 
 /*	.use(frontmatter('yml'))
