@@ -4,6 +4,7 @@
   "description": "Proof of Concept for MLogJS basic idea.",
   "main": "generate.js",
   "dependencies": {
+    "commander": "^2.9.0",
     "fs-extra": "^0.30.0",
     "highland": "^2.9.0",
     "highlight.js": "^9.4.0",
